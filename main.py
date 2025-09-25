@@ -39,31 +39,29 @@ def load_tflite_model():
     print("Input details:", input_details)
     print("Output details:", output_details)
 
-def preprocess_image(file_bytes: bytes, size=INPUT_SIZE):
-    """Crop to square, resize, normalize based on model dtype"""
+def preprocess_image(file_bytes: bytes, size=224):
+    """Crop to square, resize to model input, normalize to float32 0-1"""
     img = Image.open(io.BytesIO(file_bytes)).convert("RGB")
+
+    # Crop to square
     w, h = img.size
     min_side = min(w, h)
     left = (w - min_side) // 2
     top = (h - min_side) // 2
     img = img.crop((left, top, left + min_side, top + min_side))
-    img = img.resize((size, size), Image.BILINEAR)
-    
-    arr = np.array(img)
 
-    # Match model input dtype
-    in_dtype = input_details[0]['dtype']
-    if in_dtype == np.uint8:
-        arr = arr.astype(np.uint8)  # uint8 model expects 0-255
-    else:
-        arr = arr.astype(np.float32) / 255.0  # float32 model expects 0-1
+    # Resize to 224x224
+    img = img.resize((size, size), Image.BILINEAR)
+
+    # Convert to numpy array and normalize
+    arr = np.array(img).astype(np.float32) / 255.0
 
     # Add batch dimension
     inp = np.expand_dims(arr, axis=0)
 
-    # Debug print
     print(f"[PREPROCESS] shape={inp.shape}, dtype={inp.dtype}, min={inp.min()}, max={inp.max()}")
     return inp, img
+
 
 def softmax(x):
     e = np.exp(x - np.max(x))
@@ -159,3 +157,5 @@ async def classify(files: List[UploadFile] = File(...)):
                 "error": str(e)
             })
     return response
+
+
