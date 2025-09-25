@@ -4,8 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 import io, os, numpy as np
 from PIL import Image
-import tensorflow as tf
-#vimport tflite_runtime.interpreter as tflite
+# import tensorflow as tf
+import tflite_runtime.interpreter as tflite
 
 app = FastAPI(title="Clothes Matching TFLite API (Docker)")
 
