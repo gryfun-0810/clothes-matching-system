@@ -49,18 +49,20 @@ def preprocess_image(file_bytes: bytes, size=INPUT_SIZE):
     img = img.crop((left, top, left + min_side, top + min_side))
     img = img.resize((size, size), Image.BILINEAR)
     
-    arr = np.array(img).astype(np.float32)
-    
+    arr = np.array(img)
+
     # Match model input dtype
-    in_dtype = input_details[0]['dtype'] if input_details else np.float32
+    in_dtype = input_details[0]['dtype']
     if in_dtype == np.uint8:
-        arr = (arr).astype(np.uint8)  # uint8 model expects 0-255
+        arr = arr.astype(np.uint8)  # uint8 model expects 0-255
     else:
-        arr = arr / 255.0  # float32 model expects 0-1
+        arr = arr.astype(np.float32) / 255.0  # float32 model expects 0-1
+
+    # Add batch dimension
     inp = np.expand_dims(arr, axis=0)
-    
+
     # Debug print
-    print(f"Preprocessed image: shape={inp.shape}, dtype={inp.dtype}, min={inp.min()}, max={inp.max()}")
+    print(f"[PREPROCESS] shape={inp.shape}, dtype={inp.dtype}, min={inp.min()}, max={inp.max()}")
     return inp, img
 
 def softmax(x):
@@ -94,20 +96,27 @@ async def predict(files: List[UploadFile] = File(...)):
         try:
             inp, pil_img = preprocess_image(content, size=INPUT_SIZE)
             
-            # Set tensor
             interpreter.set_tensor(input_details[0]['index'], inp)
             interpreter.invoke()
             
-            # Get output
-            out = interpreter.get_tensor(output_details[0]['index']).squeeze()
-            probs = softmax(out) if out.ndim == 1 else out
+            out = interpreter.get_tensor(output_details[0]['index'])
+            # Ensure output shape is correct
+            out = out.squeeze()
+            if out.ndim == 0:
+                out = np.array([out])
             
+            # Only apply softmax if model output not already probabilities
+            if out.max() > 1.0 or out.min() < 0.0:
+                probs = softmax(out)
+            else:
+                probs = out
+
             # Debug prints
-            print(f"File: {f.filename}, raw model output: {out}, softmax: {probs}")
+            print(f"[PREDICT] File: {f.filename}, raw: {out}, probs: {probs}")
             
             top_idx = int(np.argmax(probs))
             confidence = float(probs[top_idx])
-            label = LABELS[top_idx] if top_idx < len(LABELS) else str(top_idx)
+            label = LABELS[top_idx]
             main_rgb = dominant_color(pil_img)
             results.append({
                 "filename": f.filename,
