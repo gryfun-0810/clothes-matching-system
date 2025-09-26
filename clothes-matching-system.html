@@ -512,10 +512,10 @@
         }
 
         function startMatching() {
-            // if (uploadedImages.length === 0) {
-            //     alert('Please upload at least one image before starting to match!');
-            //     return;
-            // }
+            if (uploadedImages.length === 0) {
+                alert('Please upload at least one image before starting to match!');
+                return;
+            }
             
             showPage('loadingPage');
             classifyImages();
@@ -593,10 +593,10 @@
             const tops = classifiedResults.filter(item => item.type === 'top');
             const bottoms = classifiedResults.filter(item => item.type === 'bottom');
             
-            if (tops.length === 0 || bottoms.length === 0) {
-                alert('Need both tops and bottoms for matching!');
-                return;
-            }
+            // if (tops.length === 0 || bottoms.length === 0) {
+            //     alert('Need both tops and bottoms for matching!');
+            //     return;
+            // }
             
             generateColorMatches();
             showPage('colorPage');
@@ -606,10 +606,10 @@
             const tops = classifiedResults.filter(item => item.type === 'top');
             const bottoms = classifiedResults.filter(item => item.type === 'bottom');
             
-            if (tops.length === 0 || bottoms.length === 0) {
-                alert('Need both tops and bottoms for matching!');
-                return;
-            }
+            // if (tops.length === 0 || bottoms.length === 0) {
+            //     alert('Need both tops and bottoms for matching!');
+            //     return;
+            // }
             
             generateAllMatches();
             showPage('allMatchPage');
