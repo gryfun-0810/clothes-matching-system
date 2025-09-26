@@ -5,5 +5,7 @@ numpy<2
 tflite-runtime>=2.13.0,<2.15.0
 python-multipart
 # tensorflow==2.14.0
+opencv-python
+
 
 

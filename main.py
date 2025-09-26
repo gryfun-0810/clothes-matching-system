@@ -78,6 +78,64 @@ def dominant_color(pil_img: Image.Image):
     avg = np.mean(arr, axis=0).astype(int)
     return tuple(avg.tolist())
 
+# ---------- New: HSV + k-means color extraction ----------
+def pil_to_cv2_rgb(pil_img: Image.Image):
+    """Convert PIL RGB image to OpenCV RGB numpy array"""
+    return np.array(pil_img)  # PIL uses RGB, OpenCV uses BGR but we'll convert appropriately when needed
+
+def extract_top_k_colors(pil_img: Image.Image, k=3, attempts=5):
+    """
+    Return top-k colors as RGB tuples (r,g,b) using HSV+kmeans.
+    Steps:
+      - Convert PIL RGB -> OpenCV HSV
+      - k-means on HSV pixels (so clustering happens in HSV space)
+      - convert cluster centers (HSV) back to RGB
+      - return list of RGB tuples ordered by cluster size (largest first)
+    """
+    # Convert PIL->numpy RGB
+    rgb = pil_to_cv2_rgb(pil_img)  # shape (H,W,3), RGB
+    # Convert RGB -> BGR (OpenCV default) then to HSV
+    bgr = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+    hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
+
+    # Prepare data for kmeans: use HSV channels, reshape to (N,3) and convert to float32
+    pixels = hsv.reshape(-1, 3).astype(np.float32)
+
+    # Filter out almost-transparent/black pixels? (optional) - here we keep all pixels
+    # Run k-means
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
+    flags = cv2.KMEANS_PP_CENTERS
+    if len(pixels) < k:
+        # fallback: if image is tiny or single-color
+        centers = np.unique(pixels, axis=0)
+        centers = centers[:k].astype(np.uint8)
+        labels = np.zeros(len(pixels), dtype=np.int32)
+    else:
+        compactness, labels, centers = cv2.kmeans(pixels, k, None, criteria, attempts, flags)
+        centers = centers.astype(np.uint8)  # HSV centers
+
+    # Count cluster sizes to order them
+    label_counts = np.bincount(labels.flatten(), minlength=k)
+    order = np.argsort(-label_counts)  # descending
+
+    rgb_centers = []
+    for idx in order:
+        hsv_center = centers[idx].reshape(1,1,3)  # shape (1,1,3) for cvt
+        # Convert HSV center (uint8) -> BGR -> RGB
+        bgr_center = cv2.cvtColor(hsv_center, cv2.COLOR_HSV2BGR)
+        rgb_center = cv2.cvtColor(bgr_center, cv2.COLOR_BGR2RGB)
+        r, g, b = int(rgb_center[0,0,0]), int(rgb_center[0,0,1]), int(rgb_center[0,0,2])
+        rgb_centers.append((r, g, b))
+
+    # debug print
+    print(f"[COLORS] extracted (ordered) centers: {rgb_centers}, counts: {label_counts.tolist()}")
+    return rgb_centers
+
+def rgb_to_hex(rgb_tuple):
+    return "#{:02x}{:02x}{:02x}".format(*rgb_tuple)
+
+# ---------- end new color functions ----------
+
 @app.on_event("startup")
 def startup_event():
     try:
@@ -116,6 +174,17 @@ async def predict(files: List[UploadFile] = File(...)):
             confidence = float(probs[top_idx])
             label = LABELS[top_idx]
             main_rgb = dominant_color(pil_img)
+
+            # Extract top 3 colors (HSV + k-means)
+            try:
+                top_colors = extract_top_k_colors(pil_img, k=3, attempts=5)
+                top_colors_rgb = [f"rgb({c[0]},{c[1]},{c[2]})" for c in top_colors]
+                top_colors_hex = [rgb_to_hex(c) for c in top_colors]
+            except Exception as ce:
+                print("Color extraction failed:", ce)
+                top_colors_rgb = [f"rgb({main_rgb[0]},{main_rgb[1]},{main_rgb[2]})"]
+                top_colors_hex = [rgb_to_hex(main_rgb)]
+
             results.append({
                 "filename": f.filename,
                 "resized_path": save_path,
@@ -123,7 +192,9 @@ async def predict(files: List[UploadFile] = File(...)):
                 "mode": pil_img.mode,
                 "label": label,
                 "confidence": round(confidence, 4),
-                "main_color": f"rgb({main_rgb[0]},{main_rgb[1]},{main_rgb[2]})"
+                "main_color": f"rgb({main_rgb[0]},{main_rgb[1]},{main_rgb[2]})",
+                "top_colors_rgb": top_colors_rgb,
+                "top_colors_hex": top_colors_hex
             })
         except Exception as e:
             results.append({
@@ -148,14 +219,24 @@ async def classify(files: List[UploadFile] = File(...)):
             top_idx = int(np.argmax(probs))
             label = LABELS[top_idx] if top_idx < len(LABELS) else str(top_idx)
             main_rgb = dominant_color(pil_img)
-            print(f"[CLASSIFY] {f.filename} -> {label}, probs={probs}")
+
+            # Extract top 3 colors for frontend to use
+            try:
+                top_colors = extract_top_k_colors(pil_img, k=3, attempts=5)
+                top_colors_rgb = [f"rgb({c[0]},{c[1]},{c[2]})" for c in top_colors]
+            except Exception as ce:
+                print("Color extraction failed:", ce)
+                top_colors_rgb = [f"rgb({main_rgb[0]},{main_rgb[1]},{main_rgb[2]})"]
+
+            print(f"[CLASSIFY] {f.filename} -> {label}, probs={probs}, colors={top_colors_rgb}")
             response.append({
                 "filename": f.filename,
                 "resized_path": save_path,
                 "resized_size": f"{pil_img.size[0]}x{pil_img.size[1]}",
                 "mode": pil_img.mode,
                 "category": label,
-                "dominant_color": f"rgb({main_rgb[0]},{main_rgb[1]},{main_rgb[2]})"
+                "dominant_color": f"rgb({main_rgb[0]},{main_rgb[1]},{main_rgb[2]})",
+                "top_colors_rgb": top_colors_rgb
             })
         except Exception as e:
             response.append({
