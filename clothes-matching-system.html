@@ -511,15 +511,15 @@
             document.getElementById(pageId).classList.add('active');
         }
 
-        function startMatching() {
-            if (uploadedImages.length === 0) {
-                alert('Please upload at least one image before starting to match!');
-                return;
-            }
+        // function startMatching() {
+        //     if (uploadedImages.length === 0) {
+        //         alert('Please upload at least one image before starting to match!');
+        //         return;
+        //     }
             
-            showPage('loadingPage');
-            classifyImages();
-        }
+        //     showPage('loadingPage');
+        //     classifyImages();
+        // }
 
         async function classifyImages() {
                 try {
