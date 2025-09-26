@@ -30,7 +30,7 @@ output_details = None
 
 def load_tflite_model():
     global interpreter, input_details, output_details
-    if interpreter is None:
+    if interpreter is not None:
         return
     if not os.path.exists(MODEL_PATH):
         raise RuntimeError(f"Model file not found at {MODEL_PATH}")
