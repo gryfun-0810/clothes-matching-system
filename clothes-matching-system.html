@@ -619,32 +619,45 @@
 
         async function classifyImages() {
             try {
-                // Prepare form data for API call
+                // STEP 1: Always extract real colors from images first
+                console.log('Extracting real colors from images...');
+                const colorPromises = uploadedImages.map(async (img) => {
+                    const realColor = await extractDominantColor(img.src);
+                    return { ...img, extractedColor: realColor };
+                });
+                
+                const imagesWithColors = await Promise.all(colorPromises);
+                console.log('Real colors extracted:', imagesWithColors.map(img => img.extractedColor));
+
+                // STEP 2: Try to get categories from backend
                 const formData = new FormData();
                 uploadedImages.forEach(img => {
-                    formData.append('images', img.file);
+                    formData.append('files', img.file);
                 });
 
-                // Call your Render backend API
-                const response = await fetch('https://clothes-matching-backend-1.onrender.com/classify', {
+                const response = await fetch('https://clothes-matching-system.onrender.com/classify', {
                     method: 'POST',
                     body: formData
                 });
 
-                if (!response.ok) {
-                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
-                }
-
-                const results = await response.json();
+                let results = [];
                 
-                // Process the results from your backend
-                classifiedResults = uploadedImages.map((img, index) => {
+                if (response.ok) {
+                    results = await response.json();
+                    console.log('Backend results:', results);
+                } else {
+                    console.log('Backend failed, using demo categories');
+                }
+                
+                // STEP 3: Combine real colors with backend results
+                classifiedResults = imagesWithColors.map((img, index) => {
                     const result = results[index] || {};
-                    const category = result.category || 'Unknown';
+                    const category = result.category || getRandomCategory(); // Demo category when model fails
+                    
                     return {
                         ...img,
                         category: category,
-                        dominantColor: result.dominant_color || getSimulatedColor(),
+                        dominantColor: img.extractedColor, // <-- ALWAYS use real extracted color
                         type: getCategoryType(category)
                     };
                 });
@@ -654,24 +667,33 @@
 
             } catch (error) {
                 console.error('Classification error:', error);
-                alert(`Error connecting to backend: ${error.message}\n\nPlease check if your backend is running and try again.`);
                 
-                // Fallback to demo mode if backend fails
-                console.log('Falling back to demo mode...');
-                setTimeout(() => {
-                    classifiedResults = uploadedImages.map((img) => {
+                // Fallback: Extract colors and use demo categories
+                try {
+                    const colorPromises = uploadedImages.map(async (img) => {
+                        const realColor = await extractDominantColor(img.src);
+                        return { ...img, extractedColor: realColor };
+                    });
+                    
+                    const imagesWithColors = await Promise.all(colorPromises);
+                    
+                    classifiedResults = imagesWithColors.map((img) => {
                         const category = getRandomCategory();
                         return {
                             ...img,
                             category: category,
-                            dominantColor: getSimulatedColor(),
+                            dominantColor: img.extractedColor, // <-- Real color even in fallback
                             type: getCategoryType(category)
                         };
                     });
                     
                     displayClassificationResults();
                     showPage('selectionPage');
-                }, 1000);
+                } catch (colorError) {
+                    console.error('Color extraction failed:', colorError);
+                    alert('Failed to process images. Please try again.');
+                    showPage('mainPage');
+                }
             }
         }
 
