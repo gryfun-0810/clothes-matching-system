@@ -370,9 +370,9 @@ async def classify(files: List[UploadFile] = File(...)):
                 probs = softmax(out) if out.ndim == 1 else out
                 top_idx = int(np.argmax(probs))
                 label = LABELS[top_idx] if top_idx < len(LABELS) else str(top_idx)
-            else:
-                # Model not loaded - return unknown category
-                label = "Unknown"
+            # else:
+            #     # Model not loaded - return unknown category
+            #     label = "Unknown"
             
             main_rgb = dominant_color(pil_img)
 
