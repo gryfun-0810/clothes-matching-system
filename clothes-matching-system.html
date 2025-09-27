@@ -626,7 +626,7 @@
                 });
 
                 // Call your Render backend API
-                const response = await fetch('https://clothes-matching-backend-1.onrender.com/classify', {
+                const response = await fetch('https://clothes-matching-system.onrender.com/classify', {
                     method: 'POST',
                     body: formData
                 });
@@ -795,7 +795,7 @@
                 };
 
                 // Call backend for color similarity matching
-                const response = await fetch('https://clothes-matching-backend-1.onrender.com/color_match', {
+                const response = await fetch('https://clothes-matching-system.onrender.com/color_match', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
