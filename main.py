@@ -348,8 +348,8 @@ async def predict(files: List[UploadFile] = File(...)):
             })
         except Exception as e:
             results.append({
-                "filename": getattr(f, "filename", "unknown"),
-                "error": str(e)
+                # "filename": getattr(f, "filename", "unknown"),
+                # "error": str(e)
             })
     return {"predictions": results}
 
@@ -396,10 +396,10 @@ async def classify(files: List[UploadFile] = File(...)):
             })
         except Exception as e:
             response.append({
-                "filename": getattr(f, "filename", "unknown"),
-                "error": str(e),
-                "category": "error",
-                "dominant_color": "rgb(0,0,0)"
+                # "filename": getattr(f, "filename", "unknown"),
+                # "error": str(e),
+                # "category": "error",
+                # "dominant_color": "rgb(0,0,0)"
             })
     return response
 
