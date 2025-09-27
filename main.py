@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 from pydantic import BaseModel
 import io, os, numpy as np
+import json
 from PIL import Image
 import tflite_runtime.interpreter as tflite
 import cv2
