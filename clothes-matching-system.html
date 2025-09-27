@@ -1068,7 +1068,7 @@
             const max = Math.max(r, g, b), min = Math.min(r, g, b);
             let h, s, l = (max + min) / 2;
 
-            if (max === min) {
+            if (max === max) {
                 h = s = 0;
             } else {
                 const d = max - min;
@@ -1085,36 +1085,105 @@
 
         function getColorName(rgbColor) {
             const rgb = parseRGBColor(rgbColor);
-            const colorNames = [
-                { name: 'Red', r: 255, g: 0, b: 0 },
-                { name: 'Blue', r: 0, g: 0, b: 255 },
-                { name: 'Green', r: 0, g: 255, b: 0 },
-                { name: 'Yellow', r: 255, g: 255, b: 0 },
-                { name: 'Purple', r: 128, g: 0, b: 128 },
-                { name: 'Orange', r: 255, g: 165, b: 0 },
-                { name: 'Pink', r: 255, g: 192, b: 203 },
-                { name: 'Brown', r: 165, g: 42, b: 42 },
-                { name: 'Black', r: 0, g: 0, b: 0 },
-                { name: 'White', r: 255, g: 255, b: 255 },
-                { name: 'Gray', r: 128, g: 128, b: 128 }
+            
+            // More comprehensive color definitions with better ranges
+            const colorRanges = [
+                // Reds
+                { name: 'Red', ranges: [{r: [200, 255], g: [0, 100], b: [0, 100]}] },
+                { name: 'Pink', ranges: [{r: [200, 255], g: [150, 255], b: [150, 255]}] },
+                { name: 'Maroon', ranges: [{r: [100, 150], g: [0, 50], b: [0, 50]}] },
+                
+                // Blues  
+                { name: 'Blue', ranges: [{r: [0, 100], g: [0, 150], b: [200, 255]}] },
+                { name: 'Navy', ranges: [{r: [0, 50], g: [0, 50], b: [100, 200]}] },
+                { name: 'Sky Blue', ranges: [{r: [100, 200], g: [200, 255], b: [200, 255]}] },
+                
+                // Greens
+                { name: 'Green', ranges: [{r: [0, 100], g: [150, 255], b: [0, 100]}] },
+                { name: 'Lime', ranges: [{r: [150, 255], g: [200, 255], b: [0, 100]}] },
+                { name: 'Dark Green', ranges: [{r: [0, 80], g: [80, 150], b: [0, 80]}] },
+                
+                // Yellows
+                { name: 'Yellow', ranges: [{r: [200, 255], g: [200, 255], b: [0, 150]}] },
+                { name: 'Gold', ranges: [{r: [200, 255], g: [180, 255], b: [0, 100]}] },
+                
+                // Oranges
+                { name: 'Orange', ranges: [{r: [200, 255], g: [100, 200], b: [0, 100]}] },
+                
+                // Purples
+                { name: 'Purple', ranges: [{r: [100, 200], g: [0, 100], b: [150, 255]}] },
+                { name: 'Violet', ranges: [{r: [150, 255], g: [0, 150], b: [200, 255]}] },
+                
+                // Browns
+                { name: 'Brown', ranges: [{r: [100, 200], g: [50, 150], b: [0, 100]}] },
+                { name: 'Tan', ranges: [{r: [180, 255], g: [150, 220], b: [100, 180]}] },
+                
+                // Grays/Neutrals
+                { name: 'White', ranges: [{r: [240, 255], g: [240, 255], b: [240, 255]}] },
+                { name: 'Light Gray', ranges: [{r: [180, 239], g: [180, 239], b: [180, 239]}] },
+                { name: 'Gray', ranges: [{r: [100, 179], g: [100, 179], b: [100, 179]}] },
+                { name: 'Dark Gray', ranges: [{r: [50, 99], g: [50, 99], b: [50, 99]}] },
+                { name: 'Black', ranges: [{r: [0, 49], g: [0, 49], b: [0, 49]}] },
             ];
             
-            let closestColor = 'Unknown';
-            let minDistance = Infinity;
-            
-            for (const color of colorNames) {
-                const distance = Math.sqrt(
-                    Math.pow(rgb.r - color.r, 2) +
-                    Math.pow(rgb.g - color.g, 2) +
-                    Math.pow(rgb.b - color.b, 2)
-                );
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    closestColor = color.name;
+            // Check each color range
+            for (const colorDef of colorRanges) {
+                for (const range of colorDef.ranges) {
+                    const rInRange = rgb.r >= range.r[0] && rgb.r <= range.r[1];
+                    const gInRange = rgb.g >= range.g[0] && rgb.g <= range.g[1];
+                    const bInRange = rgb.b >= range.b[0] && rgb.b <= range.b[1];
+                    
+                    if (rInRange && gInRange && bInRange) {
+                        return colorDef.name;
+                    }
                 }
             }
             
-            return closestColor;
+            // Fallback to closest match using HSV for better color perception
+            const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+            
+            // HSV-based color classification
+            if (hsv.s < 0.2) {
+                // Low saturation - grayscale
+                if (hsv.v > 0.8) return 'White';
+                if (hsv.v > 0.6) return 'Light Gray';
+                if (hsv.v > 0.4) return 'Gray';
+                if (hsv.v > 0.2) return 'Dark Gray';
+                return 'Black';
+            }
+            
+            // High saturation - use hue
+            if (hsv.h >= 0 && hsv.h < 15) return 'Red';
+            if (hsv.h >= 15 && hsv.h < 45) return 'Orange';
+            if (hsv.h >= 45 && hsv.h < 75) return 'Yellow';
+            if (hsv.h >= 75 && hsv.h < 150) return 'Green';
+            if (hsv.h >= 150 && hsv.h < 210) return 'Blue';
+            if (hsv.h >= 210 && hsv.h < 270) return 'Purple';
+            if (hsv.h >= 270 && hsv.h < 330) return 'Pink';
+            if (hsv.h >= 330 && hsv.h <= 360) return 'Red';
+            
+            return 'Unknown';
+        }
+        
+        function rgbToHsv(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            const diff = max - min;
+            
+            let h = 0;
+            if (diff !== 0) {
+                if (max === r) h = ((g - b) / diff) % 6;
+                else if (max === g) h = (b - r) / diff + 2;
+                else h = (r - g) / diff + 4;
+            }
+            h = Math.round(h * 60);
+            if (h < 0) h += 360;
+            
+            const s = max === 0 ? 0 : diff / max;
+            const v = max;
+            
+            return { h, s, v };
         }
 
         function getCategoryType(category) {
