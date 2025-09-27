@@ -299,22 +299,28 @@ async def predict(files: List[UploadFile] = File(...)):
 
 @app.post("/classify")
 async def classify(files: List[UploadFile] = File(...)):
-    if interpreter is None:
-        raise HTTPException(status_code=500, detail="Model not loaded")
+    # Modified: Handle missing model gracefully
     response = []
     for f in files:
         content = await f.read()
         try:
             inp, pil_img, save_path = preprocess_image(content, f.filename, size=INPUT_SIZE)
-            interpreter.set_tensor(input_details[0]['index'], inp)
-            interpreter.invoke()
-            out = interpreter.get_tensor(output_details[0]['index']).squeeze()
-            probs = softmax(out) if out.ndim == 1 else out
-            top_idx = int(np.argmax(probs))
-            label = LABELS[top_idx] if top_idx < len(LABELS) else str(top_idx)
+            
+            if interpreter is not None:
+                # Model is loaded - use it for classification
+                interpreter.set_tensor(input_details[0]['index'], inp)
+                interpreter.invoke()
+                out = interpreter.get_tensor(output_details[0]['index']).squeeze()
+                probs = softmax(out) if out.ndim == 1 else out
+                top_idx = int(np.argmax(probs))
+                label = LABELS[top_idx] if top_idx < len(LABELS) else str(top_idx)
+            else:
+                # Model not loaded - return unknown category
+                label = "Unknown"
+            
             main_rgb = dominant_color(pil_img)
 
-            # Extract top 3 colors for frontend to use
+            # Extract top 3 colors for frontend to use (works without model)
             try:
                 top_colors = extract_top_k_colors(pil_img, k=3, attempts=5)
                 top_colors_rgb = [f"rgb({c[0]},{c[1]},{c[2]})" for c in top_colors]
@@ -322,7 +328,7 @@ async def classify(files: List[UploadFile] = File(...)):
                 print("Color extraction failed:", ce)
                 top_colors_rgb = [f"rgb({main_rgb[0]},{main_rgb[1]},{main_rgb[2]})"]
 
-            print(f"[CLASSIFY] {f.filename} -> {label}, probs={probs}, colors={top_colors_rgb}")
+            print(f"[CLASSIFY] {f.filename} -> {label}, colors={top_colors_rgb}")
             response.append({
                 "filename": f.filename,
                 "resized_path": save_path,
@@ -341,12 +347,13 @@ async def classify(files: List[UploadFile] = File(...)):
             })
     return response
 
-# ---------- New: Color matching endpoint ----------
+# ---------- Modified: Color matching endpoint (works without model) ----------
 @app.post("/color_match")
 async def color_match(request: ColorMatchRequest):
     """
     Find clothing items with similar colors to the selected item.
     Returns items of opposite type (if top selected, return bottoms) with color similarity scores.
+    This endpoint works independently of the classification model.
     """
     try:
         selected_item = request.selected_item

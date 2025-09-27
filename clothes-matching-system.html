@@ -816,7 +816,7 @@
                     }))
                 };
 
-                // Call backend for color similarity matching
+                // Call backend for color similarity matching - use correct URL
                 const response = await fetch('https://clothes-matching-system.onrender.com/color_match', {
                     method: 'POST',
                     headers: {
@@ -825,27 +825,75 @@
                     body: JSON.stringify(requestData)
                 });
 
-                if (!response.ok) {
-                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                if (response.ok) {
+                    const results = await response.json();
+                    
+                    // Hide loading
+                    document.getElementById('colorMatchingLoading').style.display = 'none';
+                    
+                    // Display the similarity matches
+                    displaySimilarityMatches(results);
+                    return;
                 }
+                
+                // If backend fails, throw error to trigger fallback
+                throw new Error(`Backend returned ${response.status}`);
 
-                const results = await response.json();
+            } catch (error) {
+                console.error('Backend color matching failed:', error);
                 
                 // Hide loading
                 document.getElementById('colorMatchingLoading').style.display = 'none';
                 
-                // Display the similarity matches
-                displaySimilarityMatches(results);
-
-            } catch (error) {
-                console.error('Color matching error:', error);
-                document.getElementById('colorMatchingLoading').style.display = 'none';
-                
-                alert(`Error finding color matches: ${error.message}\n\nFalling back to frontend matching...`);
-                
-                // Fallback to frontend color matching
-                generateColorMatches();
+                // Always fall back to frontend matching without showing error alert
+                console.log('Using frontend color matching instead...');
+                generateSimilarColorMatchesFrontend();
             }
+        }
+
+        function generateSimilarColorMatchesFrontend() {
+            const container = document.getElementById('colorMatches');
+            
+            if (!selectedColorItem) {
+                container.innerHTML = '<div class="empty-state">No item selected!</div>';
+                return;
+            }
+
+            // Get opposite type items for matching
+            const oppositeType = selectedColorItem.type === 'top' ? 'bottom' : 'top';
+            const candidateItems = classifiedResults.filter(item => item.type === oppositeType);
+            
+            if (candidateItems.length === 0) {
+                container.innerHTML = `<div class="empty-state">No ${oppositeType} items found for matching with selected ${selectedColorItem.type}!</div>`;
+                return;
+            }
+
+            // Calculate color similarity for each candidate
+            const matches = [];
+            for (let candidate of candidateItems) {
+                const similarity = calculateColorCompatibility(
+                    selectedColorItem.dominantColor, 
+                    candidate.dominantColor
+                ) / 100; // Convert to 0-1 scale
+                
+                matches.push({
+                    filename: candidate.name,
+                    category: candidate.category,
+                    type: candidate.type,
+                    dominant_color: candidate.dominantColor,
+                    similarity: similarity
+                });
+            }
+            
+            // Sort by similarity (highest first) and filter good matches (>= 0.6)
+            matches.sort((a, b) => b.similarity - a.similarity);
+            const goodMatches = matches.filter(match => match.similarity >= 0.6);
+            
+            // If no good matches, show top 3 anyway
+            const finalMatches = goodMatches.length > 0 ? goodMatches : matches.slice(0, 3);
+            
+            // Display matches using existing function
+            displaySimilarityMatches({ matches: finalMatches });
         }
 
         function displaySimilarityMatches(results) {
