@@ -2,9 +2,12 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
+from pydantic import BaseModel
 import io, os, numpy as np
 from PIL import Image
 import tflite_runtime.interpreter as tflite
+import cv2
+import math
 
 app = FastAPI(title="Clothes Matching TFLite API (Docker)")
 
@@ -17,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-MODEL_PATH = "model" # model/model.tflite
+MODEL_PATH = "model" # "model/model.tflite"
 INPUT_SIZE = 224
 LABELS = ["Jeans", "LongSleevedTop", "Shorts", "Skirt", "Tee"]  # 5 categories
 TEMP_DIR = "temp_images"
@@ -27,6 +30,17 @@ os.makedirs(TEMP_DIR, exist_ok=True)  # ensure temp folder exists
 interpreter = None
 input_details = None
 output_details = None
+
+# New: Pydantic models for color matching
+class ClothingItem(BaseModel):
+    filename: str
+    category: str
+    dominant_color: str
+    type: str
+
+class ColorMatchRequest(BaseModel):
+    selected_item: ClothingItem
+    all_items: List[ClothingItem]
 
 def load_tflite_model():
     global interpreter, input_details, output_details
@@ -77,6 +91,86 @@ def dominant_color(pil_img: Image.Image):
     arr = np.array(small).reshape(-1, 3)
     avg = np.mean(arr, axis=0).astype(int)
     return tuple(avg.tolist())
+
+# ---------- New: Color similarity functions ----------
+def parse_rgb_color(rgb_string):
+    """Parse 'rgb(r,g,b)' string to (r,g,b) tuple"""
+    try:
+        # Remove 'rgb(' and ')' and split by comma
+        rgb_values = rgb_string.replace('rgb(', '').replace(')', '').split(',')
+        return tuple(int(val.strip()) for val in rgb_values)
+    except:
+        return (128, 128, 128)  # Default gray if parsing fails
+
+def rgb_to_hsv(r, g, b):
+    """Convert RGB to HSV"""
+    r, g, b = r/255.0, g/255.0, b/255.0
+    max_val = max(r, g, b)
+    min_val = min(r, g, b)
+    diff = max_val - min_val
+    
+    # Hue calculation
+    if diff == 0:
+        h = 0
+    elif max_val == r:
+        h = (60 * ((g - b) / diff) + 360) % 360
+    elif max_val == g:
+        h = (60 * ((b - r) / diff) + 120) % 360
+    elif max_val == b:
+        h = (60 * ((r - g) / diff) + 240) % 360
+    
+    # Saturation calculation
+    s = 0 if max_val == 0 else (diff / max_val)
+    
+    # Value calculation
+    v = max_val
+    
+    return h, s, v
+
+def calculate_color_similarity(color1_rgb, color2_rgb):
+    """Calculate color similarity between two RGB colors using HSV distance"""
+    try:
+        rgb1 = parse_rgb_color(color1_rgb)
+        rgb2 = parse_rgb_color(color2_rgb)
+        
+        # Convert to HSV for better color comparison
+        h1, s1, v1 = rgb_to_hsv(*rgb1)
+        h2, s2, v2 = rgb_to_hsv(*rgb2)
+        
+        # Calculate hue difference (circular distance)
+        hue_diff = min(abs(h1 - h2), 360 - abs(h1 - h2)) / 180.0  # Normalize to 0-1
+        
+        # Calculate saturation and value differences
+        sat_diff = abs(s1 - s2)
+        val_diff = abs(v1 - v2)
+        
+        # Weighted similarity score (hue is most important for color matching)
+        similarity = 1.0 - (0.6 * hue_diff + 0.2 * sat_diff + 0.2 * val_diff)
+        
+        # Apply color matching rules
+        # Neutral colors (low saturation) match well with anything
+        if s1 < 0.3 or s2 < 0.3:
+            similarity += 0.2
+        
+        # Complementary colors (opposite hues) can work well
+        if 150 <= abs(h1 - h2) <= 210:
+            similarity += 0.1
+            
+        return max(0.0, min(1.0, similarity))  # Clamp to 0-1
+        
+    except Exception as e:
+        print(f"Color similarity calculation error: {e}")
+        return 0.5  # Default moderate similarity
+
+def get_opposite_type(clothing_type):
+    """Get the opposite clothing type for matching"""
+    if clothing_type == "top":
+        return "bottom"
+    elif clothing_type == "bottom":
+        return "top"
+    else:
+        return None
+# ---------- end new color functions ----------
 
 # ---------- New: HSV + k-means color extraction ----------
 def pil_to_cv2_rgb(pil_img: Image.Image):
@@ -247,4 +341,68 @@ async def classify(files: List[UploadFile] = File(...)):
             })
     return response
 
+# ---------- New: Color matching endpoint ----------
+@app.post("/color_match")
+async def color_match(request: ColorMatchRequest):
+    """
+    Find clothing items with similar colors to the selected item.
+    Returns items of opposite type (if top selected, return bottoms) with color similarity scores.
+    """
+    try:
+        selected_item = request.selected_item
+        all_items = request.all_items
+        
+        print(f"[COLOR_MATCH] Selected: {selected_item.filename} ({selected_item.type}) - {selected_item.dominant_color}")
+        
+        # Get opposite type for matching (tops match with bottoms)
+        target_type = get_opposite_type(selected_item.type)
+        if target_type is None:
+            raise HTTPException(status_code=400, detail="Invalid clothing type for matching")
+        
+        # Filter items by opposite type
+        candidate_items = [item for item in all_items if item.type == target_type]
+        
+        if not candidate_items:
+            return {"matches": [], "message": f"No {target_type} items found for matching"}
+        
+        # Calculate color similarity for each candidate
+        matches = []
+        for candidate in candidate_items:
+            similarity = calculate_color_similarity(
+                selected_item.dominant_color, 
+                candidate.dominant_color
+            )
+            
+            print(f"[COLOR_MATCH] {candidate.filename} similarity: {similarity:.3f}")
+            
+            matches.append({
+                "filename": candidate.filename,
+                "category": candidate.category,
+                "type": candidate.type,
+                "dominant_color": candidate.dominant_color,
+                "similarity": round(similarity, 3)
+            })
+        
+        # Sort by similarity (highest first) and filter good matches (>= 0.6)
+        matches.sort(key=lambda x: x["similarity"], reverse=True)
+        good_matches = [match for match in matches if match["similarity"] >= 0.6]
+        
+        # If no good matches, return top 3 matches anyway
+        if not good_matches:
+            good_matches = matches[:3]
+        
+        print(f"[COLOR_MATCH] Returning {len(good_matches)} matches")
+        return {
+            "matches": good_matches,
+            "selected_item": {
+                "filename": selected_item.filename,
+                "category": selected_item.category,
+                "type": selected_item.type
+            },
+            "total_candidates": len(candidate_items)
+        }
+        
+    except Exception as e:
+        print(f"[COLOR_MATCH] Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Color matching failed: {str(e)}")
 
