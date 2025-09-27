@@ -20,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-MODEL_PATH = "model/model.h5" # "model/model.tflite"
+MODEL_PATH = "" # "model/model.tflite"
 INPUT_SIZE = 224
 LABELS = ["Jeans", "LongSleevedTop", "Shorts", "Skirt", "Tee"]  # 5 categories
 TEMP_DIR = "temp_images"
