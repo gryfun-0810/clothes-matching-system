@@ -8,6 +8,7 @@ from PIL import Image
 import tflite_runtime.interpreter as tflite
 import cv2
 import math
+import uuid
 
 app = FastAPI(title="Clothes Matching TFLite API (Docker)")
 
@@ -24,8 +25,16 @@ MODEL_PATH = "" # "model/model.tflite"
 INPUT_SIZE = 224
 LABELS = ["Jeans", "LongSleevedTop", "Shorts", "Skirt", "Tee"]  # 5 categories
 TEMP_DIR = "temp_images"
+FAVOURITE_DIR = "favourite"
+FAVOURITE_FILE = os.path.join(FAVOURITE_DIR, "favourites.json")
 
 os.makedirs(TEMP_DIR, exist_ok=True)  # ensure temp folder exists
+os.makedirs(FAVOURITE_DIR, exist_ok=True)  # ensure favourite folder exists
+
+# Initialize favourites file if missing
+if not os.path.exists(FAVOURITE_FILE):
+    with open(FAVOURITE_FILE, "w") as f:
+        json.dump([], f)
 
 interpreter = None
 input_details = None
@@ -41,6 +50,16 @@ class ClothingItem(BaseModel):
 class ColorMatchRequest(BaseModel):
     selected_item: ClothingItem
     all_items: List[ClothingItem]
+
+# ---------- Utility functions for favourites ----------
+def load_favourites_file():
+    with open(FAVOURITE_FILE, "r") as f:
+        return json.load(f)
+
+def save_favourites_file(favourites):
+    with open(FAVOURITE_FILE, "w") as f:
+        json.dump(favourites, f, indent=2)
+# ------------------------------------------------------
 
 def load_tflite_model():
     global interpreter, input_details, output_details
@@ -240,6 +259,42 @@ def startup_event():
 @app.get("/")
 def root():
     return {"status": "ok", "msg": "Clothes Matching TFLite API"}
+
+# -------------------- NEW FAVOURITE ENDPOINTS --------------------
+
+@app.post("/save_favourite")
+async def save_favourite(data: dict):
+    try:
+        favourites = load_favourites_file()
+        new_items = data.get("favourites", [])
+        for item in new_items:
+            item["id"] = str(uuid.uuid4())
+        favourites.extend(new_items)
+        save_favourites_file(favourites)
+        return {"message": f"Saved {len(new_items)} favourite(s).", "favourites": favourites}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save favourites: {e}")
+
+@app.get("/load_favourites")
+async def load_favourites():
+    try:
+        favourites = load_favourites_file()
+        return favourites
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load favourites: {e}")
+
+@app.delete("/delete_favourites")
+async def delete_favourites(data: dict):
+    try:
+        favourite_ids = data.get("favouriteIds", [])
+        favourites = load_favourites_file()
+        updated = [f for f in favourites if f.get("id") not in favourite_ids]
+        save_favourites_file(updated)
+        return {"message": f"Deleted {len(favourites)-len(updated)} favourite(s).", "favourites": updated}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete favourites: {e}")
+
+# -------------------- END NEW FAVOURITE ENDPOINTS --------------------
 
 @app.post("/predict")
 async def predict(files: List[UploadFile] = File(...)):
