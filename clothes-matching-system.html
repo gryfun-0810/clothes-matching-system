@@ -622,7 +622,7 @@
                 // Prepare form data for API call
                 const formData = new FormData();
                 uploadedImages.forEach(img => {
-                    formData.append('images', img.file);
+                    formData.append('files', img.file);
                 });
 
                 // Call your Render backend API
