@@ -57,6 +57,42 @@
             display: block;
         }
 
+        /* Start Page Styles */
+        .start-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            align-items: center;
+            margin-top: 50px;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px 50px;
+            border: none;
+            border-radius: 15px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            width: 300px;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
+        }
+
+        .start-btn.secondary {
+            background: linear-gradient(135deg, #48cae4, #0096c7);
+            box-shadow: 0 8px 25px rgba(72, 202, 228, 0.4);
+        }
+
+        .start-btn.secondary:hover {
+            box-shadow: 0 12px 35px rgba(72, 202, 228, 0.6);
+        }
+
         /* Upload Button */
         .upload-btn {
             background: linear-gradient(135deg, #667eea, #764ba2);
@@ -196,6 +232,28 @@
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
 
+        /* Save as Favourite Button */
+        .btn-favourite {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 12px 30px;
+            font-size: 16px;
+            margin: 20px 0;
+        }
+
+        .btn-favourite:hover {
+            background: linear-gradient(135deg, #ff5252, #e53935);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-favourite:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
         /* Loading Animation */
         .loading-spinner {
             width: 60px;
@@ -288,6 +346,32 @@
             border-radius: 15px;
             padding: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .outfit-suggestion:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .outfit-suggestion.selected-for-save {
+            border: 3px solid #ff6b6b;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        .outfit-suggestion.selected-for-save::after {
+            content: '♥ SELECTED';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff6b6b;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
         }
 
         .outfit-images {
@@ -371,6 +455,32 @@
             border-radius: 15px;
             padding: 20px;
             margin: 10px 0;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .similarity-match:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .similarity-match.selected-for-save {
+            border-color: #ff6b6b;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        .similarity-match.selected-for-save::after {
+            content: '♥ SELECTED';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff6b6b;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
         }
 
         .similarity-score {
@@ -386,6 +496,47 @@
             color: #999;
             font-style: italic;
             padding: 40px;
+        }
+
+        /* Favourite Page Styles */
+        .favourite-item {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .favourite-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .favourite-item.selected-for-delete {
+            border: 3px solid #ff4757;
+            box-shadow: 0 8px 25px rgba(255, 71, 87, 0.4);
+        }
+
+        .favourite-item.selected-for-delete::after {
+            content: '✓ DELETE';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff4757;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .favourite-controls {
+            margin: 30px 0;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
         }
 
         /* Responsive Design */
@@ -408,13 +559,29 @@
                 flex-direction: column;
                 align-items: center;
             }
+
+            .start-btn {
+                width: 250px;
+                font-size: 18px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Start Page -->
+        <div id="startPage" class="page active">
+            <h1>Clothes Matching System</h1>
+            <p style="color: #666; margin-bottom: 30px; font-size: 18px;">AI-powered outfit matching for perfect style combinations!</p>
+            
+            <div class="start-buttons">
+                <button class="start-btn" onclick="goToMainPage()">Match your clothes now!</button>
+                <button class="start-btn secondary" onclick="goToFavouritePage()">My Favourites</button>
+            </div>
+        </div>
+
         <!-- Main Page -->
-        <div id="mainPage" class="page active">
+        <div id="mainPage" class="page">
             <h1>Clothes Matching System</h1>
             <p style="color: #666; margin-bottom: 30px; font-size: 18px;">Upload your clothes and let AI help you create perfect outfits!</p>
             
@@ -433,6 +600,8 @@
             </div>
             
             <button class="btn btn-primary" onclick="startMatching()" id="startMatchBtn" disabled>✨ Start to Match</button>
+            
+            <button class="btn btn-primary" onclick="backToStart()" style="background: #6c757d;">🏠 Back to Home</button>
         </div>
 
         <!-- Loading Page -->
@@ -486,6 +655,11 @@
             <!-- Color Match Results -->
             <div id="colorMatches" class="match-results"></div>
             
+            <!-- Save as Favourite Button -->
+            <button id="saveColorFavouriteBtn" class="btn btn-favourite" onclick="saveSelectedToFavourites('color')" disabled>
+                ❤️ Save as Favourite
+            </button>
+            
             <button class="btn btn-primary" onclick="backToSelection()">⬅️ Back to Selection</button>
         </div>
 
@@ -493,7 +667,40 @@
         <div id="allMatchPage" class="page">
             <h1>All Outfit Suggestions</h1>
             <div id="allMatches" class="match-results"></div>
+            
+            <!-- Save as Favourite Button -->
+            <button id="saveAllFavouriteBtn" class="btn btn-favourite" onclick="saveSelectedToFavourites('all')" disabled>
+                ❤️ Save as Favourite
+            </button>
+            
             <button class="btn btn-primary" onclick="backToSelection()">⬅️ Back to Selection</button>
+        </div>
+
+        <!-- Favourite Page -->
+        <div id="favouritePage" class="page">
+            <h1>My Favourites</h1>
+            <p style="color: #666; margin-bottom: 20px;">Your saved outfit combinations:</p>
+            
+            <!-- Loading for Favourites -->
+            <div id="favouriteLoading" style="display: none; margin: 20px 0;">
+                <div class="loading-spinner" style="width: 40px; height: 40px; margin: 20px auto;"></div>
+                <div class="loading-text">Loading favourites...</div>
+            </div>
+            
+            <!-- Favourite Results -->
+            <div id="favouriteResults" class="match-results"></div>
+            
+            <!-- Favourite Controls -->
+            <div class="favourite-controls">
+                <button id="deleteFavouriteBtn" class="btn btn-delete" onclick="deleteSelectedFavourites()" disabled>
+                    🗑️ Delete Selected
+                </button>
+                <button class="btn btn-secondary" onclick="loadFavourites()">
+                    🔄 Refresh
+                </button>
+            </div>
+            
+            <button class="btn btn-primary" onclick="backToStart()">🏠 Back to Home</button>
         </div>
     </div>
 
@@ -501,7 +708,30 @@
         let uploadedImages = [];
         let selectedImages = [];
         let classifiedResults = [];
-        let selectedColorItem = null; // For color matching selection
+        let selectedColorItem = null;
+        let selectedForSave = [];
+        let selectedForDelete = [];
+
+        // Navigation functions
+        function goToMainPage() {
+            showPage('mainPage');
+        }
+
+        function goToFavouritePage() {
+            loadFavourites();
+            showPage('favouritePage');
+        }
+
+        function backToStart() {
+            showPage('startPage');
+            // Clear data when going back to start
+            uploadedImages = [];
+            selectedImages = [];
+            classifiedResults = [];
+            selectedColorItem = null;
+            selectedForSave = [];
+            selectedForDelete = [];
+        }
 
         // File upload functionality
         function uploadImages() {
@@ -538,11 +768,10 @@
                 preview.innerHTML = '<div class="empty-state">No images uploaded yet. Click "Upload Clothes" to get started!</div>';
                 document.getElementById('startMatchBtn').disabled = true;
                 document.getElementById('deleteBtn').disabled = true;
-                selectedImages = []; // Clear selection when no images
+                selectedImages = [];
                 return;
             }
 
-            // Convert selectedImages to strings for consistent comparison
             const selectedIds = selectedImages.map(id => String(id));
 
             preview.innerHTML = uploadedImages.map(img => `
@@ -557,7 +786,6 @@
         }
 
         function toggleSelection(imageId) {
-            // Convert to string for consistent comparison
             imageId = String(imageId);
             const index = selectedImages.indexOf(imageId);
             if (index > -1) {
@@ -565,7 +793,7 @@
             } else {
                 selectedImages.push(imageId);
             }
-            console.log('Selected images:', selectedImages); // Debug log
+            console.log('Selected images:', selectedImages);
             displayImages();
             updateDeleteButton();
         }
@@ -581,21 +809,14 @@
                 return;
             }
             
-            console.log('Before delete - Uploaded images:', uploadedImages.length); // Debug log
-            console.log('Images to delete:', selectedImages); // Debug log
+            console.log('Before delete - Uploaded images:', uploadedImages.length);
+            console.log('Images to delete:', selectedImages);
             
-            // Convert selectedImages to strings for consistent comparison
             const selectedIds = selectedImages.map(id => String(id));
-            
-            // Filter out selected images
             uploadedImages = uploadedImages.filter(img => !selectedIds.includes(String(img.id)));
             
-            console.log('After delete - Uploaded images:', uploadedImages.length); // Debug log
-            
-            // Clear selection
+            console.log('After delete - Uploaded images:', uploadedImages.length);
             selectedImages = [];
-            
-            // Update display
             displayImages();
         }
 
@@ -619,7 +840,6 @@
 
         async function classifyImages() {
             try {
-                // STEP 1: Always extract real colors from images first
                 console.log('Extracting real colors from images...');
                 const colorPromises = uploadedImages.map(async (img) => {
                     const realColor = await extractDominantColor(img.src);
@@ -629,7 +849,6 @@
                 const imagesWithColors = await Promise.all(colorPromises);
                 console.log('Real colors extracted:', imagesWithColors.map(img => img.extractedColor));
 
-                // STEP 2: Try to get categories from backend
                 const formData = new FormData();
                 uploadedImages.forEach(img => {
                     formData.append('files', img.file);
@@ -649,15 +868,14 @@
                     console.log('Backend failed, using demo categories');
                 }
                 
-                // STEP 3: Combine real colors with backend results
                 classifiedResults = imagesWithColors.map((img, index) => {
                     const result = results[index] || {};
-                    const category = result.category || getRandomCategory(); // Demo category when model fails
+                    const category = result.category || getRandomCategory();
                     
                     return {
                         ...img,
                         category: category,
-                        dominantColor: img.extractedColor, // <-- ALWAYS use real extracted color
+                        dominantColor: img.extractedColor,
                         type: getCategoryType(category)
                     };
                 });
@@ -668,7 +886,6 @@
             } catch (error) {
                 console.error('Classification error:', error);
                 
-                // Fallback: Extract colors and use demo categories
                 try {
                     const colorPromises = uploadedImages.map(async (img) => {
                         const realColor = await extractDominantColor(img.src);
@@ -682,7 +899,7 @@
                         return {
                             ...img,
                             category: category,
-                            dominantColor: img.extractedColor, // <-- Real color even in fallback
+                            dominantColor: img.extractedColor,
                             type: getCategoryType(category)
                         };
                     });
@@ -720,6 +937,8 @@
                 return;
             }
             
+            selectedForSave = [];
+            document.getElementById('saveColorFavouriteBtn').disabled = true;
             displayColorSelectionImages();
             showPage('colorPage');
         }
@@ -733,13 +952,15 @@
                 return;
             }
             
+            selectedForSave = [];
+            document.getElementById('saveAllFavouriteBtn').disabled = true;
             generateAllMatches();
             showPage('allMatchPage');
         }
 
         function displayColorSelectionImages() {
             const container = document.getElementById('colorSelectionImages');
-            selectedColorItem = null; // Reset selection
+            selectedColorItem = null;
             document.getElementById('selectedItemDisplay').style.display = 'none';
             document.getElementById('similarColorBtn').disabled = true;
             document.getElementById('colorMatches').innerHTML = '';
@@ -757,20 +978,16 @@
         }
 
         function selectColorItem(itemId) {
-            // Find the selected item
             selectedColorItem = classifiedResults.find(item => String(item.id) === String(itemId));
             
             if (!selectedColorItem) return;
             
-            // Update UI to show selection
             document.querySelectorAll('.color-selection-item').forEach(item => {
                 item.classList.remove('selected');
             });
             
-            // Add selected class to clicked item
             event.target.closest('.color-selection-item').classList.add('selected');
             
-            // Show selected item info
             const selectedDisplay = document.getElementById('selectedItemDisplay');
             const selectedInfo = document.getElementById('selectedItemInfo');
             
@@ -795,12 +1012,12 @@
                 return;
             }
             
-            // Show loading
             document.getElementById('colorMatchingLoading').style.display = 'block';
             document.getElementById('colorMatches').innerHTML = '';
+            selectedForSave = [];
+            document.getElementById('saveColorFavouriteBtn').disabled = true;
             
             try {
-                // Prepare data for backend API call
                 const requestData = {
                     selected_item: {
                         filename: selectedColorItem.name,
@@ -816,7 +1033,6 @@
                     }))
                 };
 
-                // Call backend for color similarity matching - use correct URL
                 const response = await fetch('https://clothes-matching-system.onrender.com/color_match', {
                     method: 'POST',
                     headers: {
@@ -828,24 +1044,16 @@
                 if (response.ok) {
                     const results = await response.json();
                     
-                    // Hide loading
                     document.getElementById('colorMatchingLoading').style.display = 'none';
-                    
-                    // Display the similarity matches
                     displaySimilarityMatches(results);
                     return;
                 }
                 
-                // If backend fails, throw error to trigger fallback
                 throw new Error(`Backend returned ${response.status}`);
 
             } catch (error) {
                 console.error('Backend color matching failed:', error);
-                
-                // Hide loading
                 document.getElementById('colorMatchingLoading').style.display = 'none';
-                
-                // Always fall back to frontend matching without showing error alert
                 console.log('Using frontend color matching instead...');
                 generateSimilarColorMatchesFrontend();
             }
@@ -859,7 +1067,6 @@
                 return;
             }
 
-            // Get opposite type items for matching
             const oppositeType = selectedColorItem.type === 'top' ? 'bottom' : 'top';
             const candidateItems = classifiedResults.filter(item => item.type === oppositeType);
             
@@ -868,13 +1075,12 @@
                 return;
             }
 
-            // Calculate color similarity for each candidate
             const matches = [];
             for (let candidate of candidateItems) {
                 const similarity = calculateColorCompatibility(
                     selectedColorItem.dominantColor, 
                     candidate.dominantColor
-                ) / 100; // Convert to 0-1 scale
+                ) / 100;
                 
                 matches.push({
                     filename: candidate.name,
@@ -885,14 +1091,10 @@
                 });
             }
             
-            // Sort by similarity (highest first) and filter good matches (>= 0.6)
             matches.sort((a, b) => b.similarity - a.similarity);
             const goodMatches = matches.filter(match => match.similarity >= 0.6);
-            
-            // If no good matches, show top 3 anyway
             const finalMatches = goodMatches.length > 0 ? goodMatches : matches.slice(0, 3);
             
-            // Display matches using existing function
             displaySimilarityMatches({ matches: finalMatches });
         }
 
@@ -908,7 +1110,7 @@
                 const matchedItem = classifiedResults.find(item => item.name === match.filename);
                 
                 return `
-                    <div class="similarity-match">
+                    <div class="similarity-match" onclick="toggleSaveSelection(this, 'color_${index}')">
                         <h3 style="margin-bottom: 15px; color: #333;">Match ${index + 1}</h3>
                         <div class="outfit-images" style="flex-direction: column; align-items: center;">
                             <img src="${selectedColorItem.src}" alt="${selectedColorItem.name}" style="width: 120px; height: 120px; margin-bottom: 10px;">
@@ -926,49 +1128,6 @@
             }).join('');
         }
 
-        function generateColorMatches() {
-            const container = document.getElementById('colorMatches');
-            const tops = classifiedResults.filter(item => item.type === 'top');
-            const bottoms = classifiedResults.filter(item => item.type === 'bottom');
-            
-            const colorMatches = [];
-            
-            // Generate color-compatible matches
-            for (let top of tops) {
-                for (let bottom of bottoms) {
-                    const compatibility = calculateColorCompatibility(top.dominantColor, bottom.dominantColor);
-                    if (compatibility >= 70) { // Only show good matches
-                        colorMatches.push({
-                            top: top,
-                            bottom: bottom,
-                            score: compatibility
-                        });
-                    }
-                }
-            }
-            
-            // Sort by compatibility score
-            colorMatches.sort((a, b) => b.score - a.score);
-            
-            if (colorMatches.length === 0) {
-                container.innerHTML = '<div class="empty-state">No good color matches found. Try "All Clothes Match" instead!</div>';
-                return;
-            }
-            
-            container.innerHTML = colorMatches.map(match => `
-                <div class="outfit-suggestion">
-                    <h3 style="margin-bottom: 15px; color: #333;">Color Harmony Match</h3>
-                    <div class="outfit-images" style="flex-direction: column; align-items: center;">
-                        <img src="${match.top.src}" alt="${match.top.name}" style="width: 120px; height: 120px; margin-bottom: 10px;">
-                        <img src="${match.bottom.src}" alt="${match.bottom.name}" style="width: 120px; height: 120px;">
-                    </div>
-                    <div style="text-align: center; margin-top: 10px;">
-                        <span class="match-score">${match.score}% Color Match</span>
-                    </div>
-                </div>
-            `).join('');
-        }
-
         function generateAllMatches() {
             const container = document.getElementById('allMatches');
             const tops = classifiedResults.filter(item => item.type === 'top');
@@ -976,7 +1135,6 @@
             
             const allMatches = [];
             
-            // Generate ALL possible combinations
             for (let top of tops) {
                 for (let bottom of bottoms) {
                     const compatibility = calculateColorCompatibility(top.dominantColor, bottom.dominantColor);
@@ -988,11 +1146,10 @@
                 }
             }
             
-            // Sort by compatibility score
             allMatches.sort((a, b) => b.score - a.score);
             
             container.innerHTML = allMatches.map((match, index) => `
-                <div class="outfit-suggestion">
+                <div class="outfit-suggestion" onclick="toggleSaveSelection(this, 'all_${index}')">
                     <h3 style="margin-bottom: 15px; color: #333;">Outfit ${index + 1}</h3>
                     <div class="outfit-images" style="flex-direction: column; align-items: center;">
                         <img src="${match.top.src}" alt="${match.top.name}" style="width: 120px; height: 120px; margin-bottom: 10px;">
@@ -1000,6 +1157,179 @@
                     </div>
                 </div>
             `).join('');
+        }
+
+        function toggleSaveSelection(element, matchId) {
+            const index = selectedForSave.findIndex(item => item.id === matchId);
+            
+            if (index > -1) {
+                selectedForSave.splice(index, 1);
+                element.classList.remove('selected-for-save');
+            } else {
+                const matchData = extractMatchData(element, matchId);
+                if (matchData) {
+                    selectedForSave.push({ id: matchId, data: matchData });
+                    element.classList.add('selected-for-save');
+                }
+            }
+            
+            const saveBtn = matchId.startsWith('color_') ? 
+                document.getElementById('saveColorFavouriteBtn') : 
+                document.getElementById('saveAllFavouriteBtn');
+            saveBtn.disabled = selectedForSave.length === 0;
+        }
+
+        function extractMatchData(element, matchId) {
+            const images = element.querySelectorAll('img');
+            if (images.length < 2) return null;
+            
+            const topImg = images[0];
+            const bottomImg = images[1];
+            
+            return {
+                id: matchId,
+                topImage: topImg.src,
+                bottomImage: bottomImg.src,
+                topName: topImg.alt,
+                bottomName: bottomImg.alt,
+                timestamp: new Date().toISOString()
+            };
+        }
+
+        async function saveSelectedToFavourites(pageType) {
+            if (selectedForSave.length === 0) {
+                alert('Please select at least one outfit to save!');
+                return;
+            }
+            
+            try {
+                const response = await fetch('https://clothes-matching-system.onrender.com/save_favourite', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        favourites: selectedForSave.map(item => item.data)
+                    })
+                });
+                
+                if (response.ok) {
+                    alert(`Successfully saved ${selectedForSave.length} outfit(s) to favourites!`);
+                    selectedForSave = [];
+                    
+                    // Reset selection UI
+                    document.querySelectorAll('.selected-for-save').forEach(el => {
+                        el.classList.remove('selected-for-save');
+                    });
+                    
+                    const saveBtn = pageType === 'color' ? 
+                        document.getElementById('saveColorFavouriteBtn') : 
+                        document.getElementById('saveAllFavouriteBtn');
+                    saveBtn.disabled = true;
+                } else {
+                    throw new Error('Failed to save favourites');
+                }
+                
+            } catch (error) {
+                console.error('Save favourites error:', error);
+                alert('Failed to save favourites. Please try again.');
+            }
+        }
+
+        async function loadFavourites() {
+            document.getElementById('favouriteLoading').style.display = 'block';
+            document.getElementById('favouriteResults').innerHTML = '';
+            selectedForDelete = [];
+            document.getElementById('deleteFavouriteBtn').disabled = true;
+            
+            try {
+                const response = await fetch('https://clothes-matching-system.onrender.com/load_favourites', {
+                    method: 'GET'
+                });
+                
+                if (response.ok) {
+                    const favourites = await response.json();
+                    document.getElementById('favouriteLoading').style.display = 'none';
+                    displayFavourites(favourites);
+                } else {
+                    throw new Error('Failed to load favourites');
+                }
+                
+            } catch (error) {
+                console.error('Load favourites error:', error);
+                document.getElementById('favouriteLoading').style.display = 'none';
+                document.getElementById('favouriteResults').innerHTML = '<div class="empty-state">Failed to load favourites. Click refresh to try again.</div>';
+            }
+        }
+
+        function displayFavourites(favourites) {
+            const container = document.getElementById('favouriteResults');
+            
+            if (!favourites || favourites.length === 0) {
+                container.innerHTML = '<div class="empty-state">No favourite outfits saved yet!</div>';
+                return;
+            }
+            
+            container.innerHTML = favourites.map((fav, index) => `
+                <div class="favourite-item" onclick="toggleDeleteSelection(this, '${fav.id || index}')">
+                    <h3 style="margin-bottom: 15px; color: #333;">Favourite ${index + 1}</h3>
+                    <div class="outfit-images" style="flex-direction: column; align-items: center;">
+                        <img src="${fav.topImage}" alt="${fav.topName}" style="width: 120px; height: 120px; margin-bottom: 10px;">
+                        <img src="${fav.bottomImage}" alt="${fav.bottomName}" style="width: 120px; height: 120px;">
+                    </div>
+                    <div style="text-align: center; margin-top: 10px; font-size: 12px; color: #666;">
+                        Saved: ${new Date(fav.timestamp).toLocaleDateString()}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleDeleteSelection(element, favId) {
+            const index = selectedForDelete.indexOf(favId);
+            
+            if (index > -1) {
+                selectedForDelete.splice(index, 1);
+                element.classList.remove('selected-for-delete');
+            } else {
+                selectedForDelete.push(favId);
+                element.classList.add('selected-for-delete');
+            }
+            
+            document.getElementById('deleteFavouriteBtn').disabled = selectedForDelete.length === 0;
+        }
+
+        async function deleteSelectedFavourites() {
+            if (selectedForDelete.length === 0) {
+                alert('Please select favourites to delete!');
+                return;
+            }
+            
+            if (!confirm(`Delete ${selectedForDelete.length} favourite(s)?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('https://clothes-matching-system.onrender.com/delete_favourites', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        favouriteIds: selectedForDelete
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('Successfully deleted selected favourites!');
+                    loadFavourites(); // Reload favourites
+                } else {
+                    throw new Error('Failed to delete favourites');
+                }
+                
+            } catch (error) {
+                console.error('Delete favourites error:', error);
+                alert('Failed to delete favourites. Please try again.');
+            }
         }
 
         function backToMain() {
@@ -1019,38 +1349,30 @@
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     
-                    // Set canvas size to image size
                     canvas.width = this.width;
                     canvas.height = this.height;
                     
-                    // Draw image to canvas
                     ctx.drawImage(this, 0, 0);
                     
-                    // Get image data
                     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                     const data = imageData.data;
                     
-                    // Color frequency map
                     const colorMap = {};
                     
-                    // Sample pixels (every 10th pixel for performance)
                     for (let i = 0; i < data.length; i += 40) {
                         const r = data[i];
                         const g = data[i + 1];
                         const b = data[i + 2];
                         const alpha = data[i + 3];
                         
-                        // Skip transparent pixels
                         if (alpha < 128) continue;
                         
-                        // Group similar colors (reduce precision)
                         const key = `${Math.floor(r/20)*20},${Math.floor(g/20)*20},${Math.floor(b/20)*20}`;
                         colorMap[key] = (colorMap[key] || 0) + 1;
                     }
                     
-                    // Find most frequent color
                     let maxCount = 0;
-                    let dominantColor = '#808080'; // default gray
+                    let dominantColor = '#808080';
                     
                     for (const [color, count] of Object.entries(colorMap)) {
                         if (count > maxCount) {
@@ -1063,7 +1385,7 @@
                     resolve(dominantColor);
                 };
                 
-                img.onerror = () => resolve('#808080'); // fallback color
+                img.onerror = () => resolve('#808080');
                 img.src = imageSrc;
             });
         }
@@ -1072,28 +1394,18 @@
             const rgb1 = parseRGBColor(color1);
             const rgb2 = parseRGBColor(color2);
             
-            // Convert to HSL for better color analysis
             const hsl1 = rgbToHsl(rgb1.r, rgb1.g, rgb1.b);
             const hsl2 = rgbToHsl(rgb2.r, rgb2.g, rgb2.b);
             
-            // Calculate compatibility based on color theory
             const hueDiff = Math.abs(hsl1.h - hsl2.h);
             const satDiff = Math.abs(hsl1.s - hsl2.s);
             const lightDiff = Math.abs(hsl1.l - hsl2.l);
             
-            // Good matches: complementary colors, analogous colors, or neutral combinations
-            let score = 50; // base score
+            let score = 50;
             
-            // Complementary colors (opposite on color wheel)
             if (hueDiff > 150 && hueDiff < 210) score += 30;
-            
-            // Analogous colors (similar hues)
             if (hueDiff < 30) score += 25;
-            
-            // Good contrast in lightness
             if (lightDiff > 0.3) score += 15;
-            
-            // Neutral colors always match well
             if (hsl1.s < 0.3 || hsl2.s < 0.3) score += 20;
             
             return Math.min(100, score);
@@ -1113,7 +1425,7 @@
             const max = Math.max(r, g, b), min = Math.min(r, g, b);
             let h, s, l = (max + min) / 2;
 
-            if (max === max) {
+            if (max === min) {
                 h = s = 0;
             } else {
                 const d = max - min;
@@ -1131,39 +1443,23 @@
         function getColorName(rgbColor) {
             const rgb = parseRGBColor(rgbColor);
             
-            // More comprehensive color definitions with better ranges
             const colorRanges = [
-                // Reds
                 { name: 'Red', ranges: [{r: [200, 255], g: [0, 100], b: [0, 100]}] },
                 { name: 'Pink', ranges: [{r: [200, 255], g: [150, 255], b: [150, 255]}] },
                 { name: 'Maroon', ranges: [{r: [100, 150], g: [0, 50], b: [0, 50]}] },
-                
-                // Blues  
                 { name: 'Blue', ranges: [{r: [0, 100], g: [0, 150], b: [200, 255]}] },
                 { name: 'Navy', ranges: [{r: [0, 50], g: [0, 50], b: [100, 200]}] },
                 { name: 'Sky Blue', ranges: [{r: [100, 200], g: [200, 255], b: [200, 255]}] },
-                
-                // Greens
                 { name: 'Green', ranges: [{r: [0, 100], g: [150, 255], b: [0, 100]}] },
                 { name: 'Lime', ranges: [{r: [150, 255], g: [200, 255], b: [0, 100]}] },
                 { name: 'Dark Green', ranges: [{r: [0, 80], g: [80, 150], b: [0, 80]}] },
-                
-                // Yellows
                 { name: 'Yellow', ranges: [{r: [200, 255], g: [200, 255], b: [0, 150]}] },
                 { name: 'Gold', ranges: [{r: [200, 255], g: [180, 255], b: [0, 100]}] },
-                
-                // Oranges
                 { name: 'Orange', ranges: [{r: [200, 255], g: [100, 200], b: [0, 100]}] },
-                
-                // Purples
                 { name: 'Purple', ranges: [{r: [100, 200], g: [0, 100], b: [150, 255]}] },
                 { name: 'Violet', ranges: [{r: [150, 255], g: [0, 150], b: [200, 255]}] },
-                
-                // Browns
                 { name: 'Brown', ranges: [{r: [100, 200], g: [50, 150], b: [0, 100]}] },
                 { name: 'Tan', ranges: [{r: [180, 255], g: [150, 220], b: [100, 180]}] },
-                
-                // Grays/Neutrals
                 { name: 'White', ranges: [{r: [240, 255], g: [240, 255], b: [240, 255]}] },
                 { name: 'Light Gray', ranges: [{r: [180, 239], g: [180, 239], b: [180, 239]}] },
                 { name: 'Gray', ranges: [{r: [100, 179], g: [100, 179], b: [100, 179]}] },
@@ -1171,7 +1467,6 @@
                 { name: 'Black', ranges: [{r: [0, 49], g: [0, 49], b: [0, 49]}] },
             ];
             
-            // Check each color range
             for (const colorDef of colorRanges) {
                 for (const range of colorDef.ranges) {
                     const rInRange = rgb.r >= range.r[0] && rgb.r <= range.r[1];
@@ -1184,12 +1479,9 @@
                 }
             }
             
-            // Fallback to closest match using HSV for better color perception
             const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
             
-            // HSV-based color classification
             if (hsv.s < 0.2) {
-                // Low saturation - grayscale
                 if (hsv.v > 0.8) return 'White';
                 if (hsv.v > 0.6) return 'Light Gray';
                 if (hsv.v > 0.4) return 'Gray';
@@ -1197,7 +1489,6 @@
                 return 'Black';
             }
             
-            // High saturation - use hue
             if (hsv.h >= 0 && hsv.h < 15) return 'Red';
             if (hsv.h >= 15 && hsv.h < 45) return 'Orange';
             if (hsv.h >= 45 && hsv.h < 75) return 'Yellow';
@@ -1237,10 +1528,9 @@
             
             if (topCategories.includes(category)) return 'top';
             if (bottomCategories.includes(category)) return 'bottom';
-            return 'other'; // fallback
+            return 'other';
         }
 
-        // Helper functions for demo data
         function getRandomCategory() {
             const categories = ['Tee', 'LongSleevedTop', 'Shorts', 'Skirt', 'Jeans'];
             return categories[Math.floor(Math.random() * categories.length)];
