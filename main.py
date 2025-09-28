@@ -22,7 +22,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-MODEL_PATH = "" # "model/model.tflite"
+MODEL_PATH = "model/model.tflite" # "model/model.tflite"
 INPUT_SIZE = 224
 LABELS = ["Jeans", "LongSleevedTop", "Shorts", "Skirt", "Tee"]  # 5 categories
 TEMP_DIR = "temp_images"
@@ -148,23 +148,17 @@ def rgb_to_hsv(r, g, b):
     return h, s, v
 
 def calculate_color_similarity(color1_rgb, color2_rgb):
-    """Calculate color similarity between two RGB colors using HSV distance"""
     try:
         rgb1 = parse_rgb_color(color1_rgb)
         rgb2 = parse_rgb_color(color2_rgb)
         
-        # Convert to HSV for better color comparison
         h1, s1, v1 = rgb_to_hsv(*rgb1)
         h2, s2, v2 = rgb_to_hsv(*rgb2)
-        
-        # Calculate hue difference (circular distance)
-        hue_diff = min(abs(h1 - h2), 360 - abs(h1 - h2)) / 180.0  # Normalize to 0-1
-        
-        # Calculate saturation and value differences
+
+        hue_diff = min(abs(h1 - h2), 360 - abs(h1 - h2)) / 180.0  
         sat_diff = abs(s1 - s2)
         val_diff = abs(v1 - v2)
         
-        # Weighted similarity score (hue is most important for color matching)
         similarity = 1.0 - (0.6 * hue_diff + 0.2 * sat_diff + 0.2 * val_diff)
         
         # Apply color matching rules
@@ -198,25 +192,10 @@ def pil_to_cv2_rgb(pil_img: Image.Image):
     return np.array(pil_img)  # PIL uses RGB, OpenCV uses BGR but we'll convert appropriately when needed
 
 def extract_top_k_colors(pil_img: Image.Image, k=3, attempts=5):
-    """
-    Return top-k colors as RGB tuples (r,g,b) using HSV+kmeans.
-    Steps:
-      - Convert PIL RGB -> OpenCV HSV
-      - k-means on HSV pixels (so clustering happens in HSV space)
-      - convert cluster centers (HSV) back to RGB
-      - return list of RGB tuples ordered by cluster size (largest first)
-    """
-    # Convert PIL->numpy RGB
     rgb = pil_to_cv2_rgb(pil_img)  # shape (H,W,3), RGB
-    # Convert RGB -> BGR (OpenCV default) then to HSV
     bgr = cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
     hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
-
-    # Prepare data for kmeans: use HSV channels, reshape to (N,3) and convert to float32
     pixels = hsv.reshape(-1, 3).astype(np.float32)
-
-    # Filter out almost-transparent/black pixels? (optional) - here we keep all pixels
-    # Run k-means
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
     flags = cv2.KMEANS_PP_CENTERS
     if len(pixels) < k:
