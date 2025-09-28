@@ -24,7 +24,7 @@ app.add_middleware(
 
 MODEL_PATH = "" # "model/model.tflite"
 INPUT_SIZE = 224
-LABELS = ["Jeans", "LongSleevedTop", "Shorts", "Skirt", "Tee"]  # 5 categories
+LABELS = ["Jeans", "Tee"]  # 5 categories
 TEMP_DIR = "temp_images"
 FAVOURITE_DIR = "favourite"
 FAVOURITE_FILE = os.path.join(FAVOURITE_DIR, "favourites.json")
