@@ -319,7 +319,7 @@ async def predict(files: List[UploadFile] = File(...)):
                 "resized_path": save_path,
                 "resized_size": f"{pil_img.size[0]}x{pil_img.size[1]}",
                 "mode": pil_img.mode,
-                "label": label,
+                "category": label,
                 "confidence": round(confidence, 4),
                 "main_color": f"rgb({main_rgb[0]},{main_rgb[1]},{main_rgb[2]})",
                 "top_colors_rgb": top_colors_rgb,
@@ -369,7 +369,7 @@ async def classify(files: List[UploadFile] = File(...)):
                 "resized_path": save_path,
                 "resized_size": f"{pil_img.size[0]}x{pil_img.size[1]}",
                 "mode": pil_img.mode,
-                "category": LABELS,
+                "category": label,
                 "dominant_color": f"rgb({main_rgb[0]},{main_rgb[1]},{main_rgb[2]})",
                 "top_colors_rgb": top_colors_rgb
             })
