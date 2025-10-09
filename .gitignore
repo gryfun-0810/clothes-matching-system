@@ -10,3 +10,9 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
+# Ignore unused large model files and dataset archives
+model/resnet50_clothing_classifier.tflite
+model/vgg19_clothing_classifier.tflite
+*.zip
+
+
