@@ -24,7 +24,7 @@ app.add_middleware(
 
 MODEL_PATH = "model/model.tflite" # "model/model.tflite"
 INPUT_SIZE = 224
-LABELS = ["Jeans", "Tee"]  # 5 categories
+LABELS = ["Jeans", "LongSleevedTop", "Shorts", "Skirt", "Tee"]  # 5 categories
 TEMP_DIR = "temp_images"
 FAVOURITE_DIR = "favourite"
 FAVOURITE_FILE = os.path.join(FAVOURITE_DIR, "favourites.json")
@@ -369,7 +369,7 @@ async def classify(files: List[UploadFile] = File(...)):
                 "resized_path": save_path,
                 "resized_size": f"{pil_img.size[0]}x{pil_img.size[1]}",
                 "mode": pil_img.mode,
-                "category": label,
+                "category": LABELS,
                 "dominant_color": f"rgb({main_rgb[0]},{main_rgb[1]},{main_rgb[2]})",
                 "top_colors_rgb": top_colors_rgb
             })
@@ -447,4 +447,5 @@ async def color_match(request: ColorMatchRequest):
     except Exception as e:
         print(f"[COLOR_MATCH] Error: {e}")
         raise HTTPException(status_code=500, detail=f"Color matching failed: {str(e)}")
+
 

@@ -1523,8 +1523,8 @@
         }
 
         function getCategoryType(category) {
-            const topCategories = ['Tee'];
-            const bottomCategories = ['Jeans'];
+            const topCategories = ['Tee', 'LongSleevedTop'];
+            const bottomCategories = ['Shorts', 'Skirt', 'Jeans'];
             
             if (topCategories.includes(category)) return 'top';
             if (bottomCategories.includes(category)) return 'bottom';
@@ -1532,7 +1532,7 @@
         }
 
         function getRandomCategory() {
-            const categories = ['Tee', 'Jeans'];
+            const categories = ['Tee', 'LongSleevedTop', 'Shorts', 'Skirt', 'Jeans'];
             return categories[Math.floor(Math.random() * categories.length)];
         }
 
